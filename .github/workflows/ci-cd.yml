@@ -112,20 +112,32 @@ jobs:
 
   deploy:
     name: Deploy to Production
-    needs: [build-backend, build-frontend]
+    needs: [build-backend, build-frontend]  # You can also remove this line if you want a totally independent deploy
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Download backend artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: DIS_${{ env.VERSION }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          name: frontend-dist
+          go-version: '1.21'
+
+      - name: Build Go Backend
+        working-directory: backend
+        run: go build -o server ./cmd/server
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build Vue Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
 
       - name: Deploy to server
         env:
@@ -137,8 +149,10 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # Copy files to server
-          scp -o StrictHostKeyChecking=no ./server $SERVER_USER@$SERVER_IP:/app/server
+          # Copy backend binary
+          scp -o StrictHostKeyChecking=no backend/server $SERVER_USER@$SERVER_IP:/app/server
+
+          # Copy frontend files
           scp -o StrictHostKeyChecking=no -r frontend/dist/* $SERVER_USER@$SERVER_IP:/var/www/html/
 
           # Restart service
