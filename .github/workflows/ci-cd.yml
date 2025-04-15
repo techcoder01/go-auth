@@ -120,6 +120,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-binary
+          path: backend-binary 
+
 
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
