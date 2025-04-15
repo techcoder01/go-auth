@@ -11,48 +11,42 @@ import (
 )
 
 func main() {
+	log.Println("Starting application...")
+
 	// Load config
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+	log.Println("Config loaded successfully")
 
 	// Initialize database
+	log.Println("Initializing database connection...")
 	database.InitDB()
 	defer database.CloseDB()
+	log.Println("Database connection established")
 
-	// Check environment
-	environment := os.Getenv("ENVIRONMENT")
-	if environment == "" {
-		environment = cfg.Environment
-	}
-
-	// Set Gin mode based on environment
-	if environment == "production" {
-		gin.SetMode(gin.ReleaseMode)
-		log.Printf("Running in production mode")
-	} else {
-		log.Printf("Running in development mode")
-	}
-
+	// Set up router
 	router := gin.Default()
 	routes.SetupRoutes(router, cfg)
+	log.Println("Routes configured")
 
-	// Get port from environment or config
+	// Get port from environment with fallback
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = cfg.ServerPort
+		if port == "" {
+			port = "8080" // Default fallback
+		}
 	}
 	
-	log.Printf("Environment: %s", environment)
-	log.Printf("Server starting on port %s", port)
+	log.Printf("Environment: %s", os.Getenv("ENVIRONMENT"))
+	log.Printf("Attempting to start server on port %s", port)
 	
-	// In production, bind to all interfaces
-	if environment == "production" {
-		log.Printf("Binding to all interfaces (0.0.0.0)")
-		log.Fatal(router.Run("0.0.0.0:" + port))
-	} else {
-		// In development, use default binding
-		log.Fatal(router.Run(":" + port))
+	// Always bind to all interfaces (0.0.0.0)
+	// This is crucial for containerized environments like Render
+	err = router.Run("0.0.0.0:" + port)
+	if err != nil {
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }
