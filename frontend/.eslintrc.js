@@ -1,5 +1,6 @@
 module.exports = {
     root: true,
+    vitest: true,  // If using Vitest
     env: {
       node: true
     },
