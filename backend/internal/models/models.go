@@ -1,13 +1,17 @@
+// models/user.go - fixed version
 package models
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"github.com/techcoder01/go-auth/internal/database"
-	"github.com/dgrijalva/jwt-go"
+	"database/sql"
 	"errors"
-	"time"
+	"fmt"
+	"log"
 	"strconv"
-	"database/sql" // Add this import
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/techcoder01/go-auth/internal/database"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Define custom errors
@@ -20,7 +24,7 @@ var (
 type User struct {
 	ID       string `json:"id"`
 	Email    string `json:"email"`
-	Password string `json:"password"`
+	Password string `json:"-"` // Don't include password in JSON responses
 }
 
 // HashPassword hashes the given password using bcrypt
@@ -42,7 +46,7 @@ func CheckPasswordHash(password, hashedPassword string) bool {
 func AuthenticateUser(email, password string) (*User, error) {
 	// Create a query to get the user from the database
 	var user User
-	query := "SELECT id, email, password FROM users WHERE email = ?"
+	query := "SELECT id, email, password FROM users WHERE email = $1"
 	err := database.DB.QueryRow(query, email).Scan(&user.ID, &user.Email, &user.Password)
 
 	if err != nil {
@@ -57,6 +61,8 @@ func AuthenticateUser(email, password string) (*User, error) {
 		return nil, ErrInvalidCredentials
 	}
 
+	// Don't return the password
+	user.Password = ""
 	return &user, nil
 }
 
@@ -78,29 +84,38 @@ func GenerateToken(userID string) (string, error) {
 
 // CreateUser creates a new user in the database
 func CreateUser(email, password string) (*User, error) {
+	// Check if user already exists
+	var count int
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", email).Scan(&count)
+	if err != nil {
+		log.Printf("Error checking for existing user: %v", err)
+		return nil, fmt.Errorf("error checking for existing user: %w", err)
+	}
+	
+	if count > 0 {
+		return nil, fmt.Errorf("user with email %s already exists", email)
+	}
+
 	// Hash the password
 	hash, err := HashPassword(password)
 	if err != nil {
-		return nil, err
+		log.Printf("Error hashing password: %v", err)
+		return nil, fmt.Errorf("error hashing password: %w", err)
 	}
 
 	// Create a new user in the database
-	query := "INSERT INTO users (email, password) VALUES (?, ?)"
-	res, err := database.DB.Exec(query, email, hash)
+	var id int64
+	query := "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id"
+	err = database.DB.QueryRow(query, email, hash).Scan(&id)
 	if err != nil {
-		return nil, err
-	}
-
-	// Get the last inserted ID
-	id, err := res.LastInsertId()
-	if err != nil {
+		log.Printf("Error inserting user: %v", err)
 		return nil, err
 	}
 
 	// Convert int64 id to string properly
 	userID := strconv.FormatInt(id, 10)
 
-	// Return the created user
+	// Return the created user (without password)
 	return &User{
 		ID:    userID,
 		Email: email,
@@ -110,7 +125,7 @@ func CreateUser(email, password string) (*User, error) {
 // GetUser retrieves a user by their ID
 func GetUser(userID string) (*User, error) {
 	var user User
-	query := "SELECT id, email FROM users WHERE id = ?"
+	query := "SELECT id, email FROM users WHERE id = $1"
 	err := database.DB.QueryRow(query, userID).Scan(&user.ID, &user.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {

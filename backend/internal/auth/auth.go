@@ -3,6 +3,7 @@ package auth
 import (
     "net/http"
     "time"
+    "strings"
 
     "github.com/gin-gonic/gin"
     "github.com/golang-jwt/jwt/v5"
@@ -30,11 +31,13 @@ func GenerateToken(userID string, secret string, ttl time.Duration) (string, err
 
 func AuthMiddleware(secret string) gin.HandlerFunc {
     return func(c *gin.Context) {
-        tokenString, err := c.Cookie(TokenCookieName)
-        if err != nil {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+        authHeader := c.GetHeader("Authorization")
+        if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid auth header"})
             return
         }
+
+        tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
         claims := &Claims{}
         token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -42,14 +45,15 @@ func AuthMiddleware(secret string) gin.HandlerFunc {
         })
 
         if err != nil || !token.Valid {
-            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
             return
         }
 
-        c.Set("userID", claims.UserID)
+        c.Set("userId", claims.UserID)
         c.Next()
     }
 }
+
 
 // ParseToken parses the token and returns the Claims
 func ParseToken(tokenString string, secret string) (*Claims, error) {

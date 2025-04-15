@@ -2,8 +2,8 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
+	"fmt"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -13,14 +13,21 @@ var DB *sql.DB
 
 func InitDB() {
 	var err error
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-	)
+	
+	// Use the external database URL directly
+	connStr := os.Getenv("DATABASE_URL")
+	
+	// If DATABASE_URL is not set, fall back to the individual parameters
+	if connStr == "" {
+		connStr = fmt.Sprintf(
+			"host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
+			os.Getenv("DB_HOST"),
+			os.Getenv("DB_PORT"),
+			os.Getenv("DB_USER"),
+			os.Getenv("DB_PASSWORD"),
+			os.Getenv("DB_NAME"),
+		)
+	}
 
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
@@ -34,7 +41,7 @@ func InitDB() {
 
 	log.Println("✅ Successfully connected to database")
 
-	// ✅ Create users table if it doesn't exist
+	// Create users table if it doesn't exist
 	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id SERIAL PRIMARY KEY,

@@ -14,14 +14,7 @@ GO_TEST := $(GO) test
 GO_MOD := $(GO) mod
 GO_LINT := golangci-lint
 
-# Docker variables
-DOCKER := docker
-DOCKER_COMPOSE := docker-compose
-DOCKER_NETWORK := go-network
-
-.PHONY: all build run test clean migrate-up migrate-down lint docker-up docker-down
-
-all: build
+.PHONY: all build run test clean migrate-up migrate-down lint deps setup
 
 # Build the application
 build:
@@ -60,15 +53,6 @@ lint:
 	@echo "Running linter..."
 	@$(GO_LINT) run
 
-# Docker commands
-docker-up:
-	@echo "Starting Docker containers..."
-	@$(DOCKER_COMPOSE) up -d
-
-docker-down:
-	@echo "Stopping Docker containers..."
-	@$(DOCKER_COMPOSE) down
-
 # Install dependencies
 deps:
 	@echo "Installing dependencies..."
@@ -77,7 +61,7 @@ deps:
 	@$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 # Setup development environment
-setup: deps docker-up migrate-up
+setup: deps migrate-up
 
 # Default target
 .DEFAULT_GOAL := run
