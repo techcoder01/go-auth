@@ -10,7 +10,7 @@
             <router-link to="/" class="inline-flex items-center px-1 pt-1 border-b-2" :class="[$route.path === '/' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']">
               Home
             </router-link>
-            <router-link v-if="isAuthenticated" to="/dashboard" class="inline-flex items-center px-1 pt-1 border-b-2" :class="[$route.path === '/dashboard' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']">
+            <router-link v-if="isAuthenticated" to="/dashboard" data-test="dashboard" class="inline-flex items-center px-1 pt-1 border-b-2" :class="[$route.path === '/dashboard' ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700']">
               Dashboard
             </router-link>
           </div>
@@ -18,20 +18,20 @@
         <div class="hidden sm:ml-6 sm:flex sm:items-center">
           <div v-if="isAuthenticated" class="flex items-center space-x-4">
             <div class="text-sm text-gray-700">{{ user?.email }}</div>
-            <button @click="logout" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <button @click="logout" data-test="logout" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               Logout
             </button>
           </div>
           <div v-else class="flex items-center space-x-2">
-            <router-link to="/login" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <router-link to="/login" data-test="login" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               Login
             </router-link>
-            <router-link to="/register" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <router-link to="/register" data-test="register" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
               Register
             </router-link>
           </div>
         </div>
-        
+
         <!-- Mobile menu button -->
         <div class="flex items-center sm:hidden">
           <button @click="toggleMobileMenu" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
@@ -47,10 +47,10 @@
     <!-- Mobile menu -->
     <div v-if="mobileMenuOpen" class="sm:hidden">
       <div class="pt-2 pb-3 space-y-1">
-        <router-link to="/" class="block pl-3 pr-4 py-2 border-l-4" :class="[$route.path === '/' ? 'border-indigo-500 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']">
+        <router-link to="/"  class="block pl-3 pr-4 py-2 border-l-4" :class="[$route.path === '/' ? 'border-indigo-500 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']" @click="closeMobileMenu">
           Home
         </router-link>
-        <router-link v-if="isAuthenticated" to="/dashboard" class="block pl-3 pr-4 py-2 border-l-4" :class="[$route.path === '/dashboard' ? 'border-indigo-500 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']">
+        <router-link v-if="isAuthenticated" to="/dashboard" data-test="dashboard" class="block pl-3 pr-4 py-2 border-l-4" :class="[$route.path === '/dashboard' ? 'border-indigo-500 text-indigo-700 bg-indigo-50' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800']" @click="closeMobileMenu">
           Dashboard
         </router-link>
       </div>
@@ -73,10 +73,10 @@
             </button>
           </div>
           <div v-else class="space-y-1">
-            <router-link to="/login" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+            <router-link to="/login" data-test="login" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" @click="closeMobileMenu">
               Login
             </router-link>
-            <router-link to="/register" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">
+            <router-link to="/register" data-test="register" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" @click="closeMobileMenu">
               Register
             </router-link>
           </div>
@@ -97,27 +97,30 @@ export default {
     const mobileMenuOpen = ref(false)
 
     // Computed properties for authentication and user
-    const isAuthenticated = ref(localStorage.getItem('authToken') !== null)
-    const user = ref(JSON.parse(localStorage.getItem('user')))
+    const isAuthenticated = computed(() => localStorage.getItem('authToken') !== null)
+    const user = computed(() => JSON.parse(localStorage.getItem('user')))
 
     // Mobile menu toggle
     const toggleMobileMenu = () => {
       mobileMenuOpen.value = !mobileMenuOpen.value
     }
 
+    // Close mobile menu after selection
+    const closeMobileMenu = () => {
+      mobileMenuOpen.value = false
+    }
+
     // Logout function using Axios
     const logout = async () => {
       try {
-        await axios.post('/api/logout')  // Assuming your API has a logout route
+        await axios.post('http://localhost:8080/api/logout')  // Assuming your API has a logout route
         localStorage.removeItem('authToken')
         localStorage.removeItem('user')
-        isAuthenticated.value = false
         router.push('/login')
       } catch (error) {
         console.error('Logout failed:', error)
         localStorage.removeItem('authToken')
         localStorage.removeItem('user')
-        isAuthenticated.value = false
         router.push('/login')
       }
     }
@@ -125,6 +128,7 @@ export default {
     return {
       mobileMenuOpen,
       toggleMobileMenu,
+      closeMobileMenu,
       isAuthenticated,
       user,
       logout
