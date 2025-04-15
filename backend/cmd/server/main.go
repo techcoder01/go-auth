@@ -21,18 +21,38 @@ func main() {
 	database.InitDB()
 	defer database.CloseDB()
 
-	// Set Gin mode
-	if cfg.Environment == "production" {
+	// Check environment
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		environment = cfg.Environment
+	}
+
+	// Set Gin mode based on environment
+	if environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
+		log.Printf("Running in production mode")
+	} else {
+		log.Printf("Running in development mode")
 	}
 
 	router := gin.Default()
 	routes.SetupRoutes(router, cfg)
 
+	// Get port from environment or config
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = cfg.ServerPort
 	}
-	log.Printf("Server running on port %s", port)
-	log.Fatal(router.Run(":" + port))
+	
+	log.Printf("Environment: %s", environment)
+	log.Printf("Server starting on port %s", port)
+	
+	// In production, bind to all interfaces
+	if environment == "production" {
+		log.Printf("Binding to all interfaces (0.0.0.0)")
+		log.Fatal(router.Run("0.0.0.0:" + port))
+	} else {
+		// In development, use default binding
+		log.Fatal(router.Run(":" + port))
+	}
 }
