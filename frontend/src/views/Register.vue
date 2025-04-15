@@ -154,7 +154,7 @@ export default {
 
   try {
     // Make the API call for registration
-    const response = await axios.post('http://localhost:8080/api/register', {
+    const response = await axios.post('https://go-auth-ftrw.onrender.com/api/register', {
       email: email.value,
       password: password.value
     })

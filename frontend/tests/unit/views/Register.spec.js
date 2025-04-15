@@ -77,7 +77,7 @@ describe('Register', () => {
     
     await wrapper.find('form').trigger('submit')
   
-    expect(axios.post).toHaveBeenCalledWith('http://localhost:8080/api/register', {
+    expect(axios.post).toHaveBeenCalledWith('https://go-auth-ftrw.onrender.com/api/register', {
       email: 'test@example.com',
       password: 'password123'
     })

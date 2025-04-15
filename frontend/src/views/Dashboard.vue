@@ -61,7 +61,7 @@ export default {
       
       try {
         // Use the token for authentication in the API request
-        const response = await axios.get('http://localhost:8080/api/user', {
+        const response = await axios.get('https://go-auth-ftrw.onrender.com/api/user', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

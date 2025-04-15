@@ -61,7 +61,7 @@ describe('Login', () => {
     wrapper.vm.password = 'password123' // Set the data directly
     await wrapper.find('form').trigger('submit')
 
-    expect(axios.post).toHaveBeenCalledWith('http://localhost:8080/api/login', {
+    expect(axios.post).toHaveBeenCalledWith('https://go-auth-ftrw.onrender.com/api/login', {
       email: 'test@example.com',
       password: 'password123'
     })

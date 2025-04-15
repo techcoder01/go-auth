@@ -52,7 +52,7 @@ describe('Dashboard', () => {
     await flushPromises()
     
     // Verify axios was called correctly
-    expect(axios.get).toHaveBeenCalledWith('http://localhost:8080/api/user', {
+    expect(axios.get).toHaveBeenCalledWith('https://go-auth-ftrw.onrender.com/api/user', {
       headers: {
         'Authorization': 'Bearer test-token'
       }

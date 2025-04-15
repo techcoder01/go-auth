@@ -6,7 +6,7 @@ import './index.css'
 import axios from 'axios'
 
 // Set up axios defaults
-axios.defaults.baseURL = 'http://localhost:8080'
+axios.defaults.baseURL = 'https://go-auth-ftrw.onrender.com'
 
 // Import components
 import Home from './views/Home.vue'

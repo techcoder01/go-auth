@@ -150,7 +150,7 @@ export default {
 
       try {
         // Make the API request directly here
-        const response = await axios.post('http://localhost:8080/api/login', {
+        const response = await axios.post('https://go-auth-ftrw.onrender.com/api/login', {
           email: email.value,
           password: password.value,
         })

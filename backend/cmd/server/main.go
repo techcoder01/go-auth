@@ -31,22 +31,17 @@ func main() {
 	routes.SetupRoutes(router, cfg)
 	log.Println("Routes configured")
 
-	// Get port from environment with fallback
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = cfg.ServerPort
-		if port == "" {
-			port = "8080" // Default fallback
-		}
+		log.Fatal("PORT environment variable is required by Render")
 	}
-	
+
 	log.Printf("Environment: %s", os.Getenv("ENVIRONMENT"))
 	log.Printf("Attempting to start server on port %s", port)
-	
-	// Always bind to all interfaces (0.0.0.0)
-	// This is crucial for containerized environments like Render
+
 	err = router.Run("0.0.0.0:" + port)
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+
 }

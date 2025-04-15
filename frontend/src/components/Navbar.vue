@@ -113,7 +113,7 @@ export default {
     // Logout function using Axios
     const logout = async () => {
       try {
-        await axios.post('http://localhost:8080/api/logout')  // Assuming your API has a logout route
+        await axios.post('https://go-auth-ftrw.onrender.com/api/logout')  // Assuming your API has a logout route
         localStorage.removeItem('authToken')
         localStorage.removeItem('user')
         router.push('/login')
